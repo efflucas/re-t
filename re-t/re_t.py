@@ -25,19 +25,22 @@ pygame.display.set_icon(WINDOW_ICON) # applies test.png as icon in the window ti
 WHITE = (255, 255, 255)
 BLACK = (  0,   0,   0)
 
-class Bubblegum():
+class Bubblegum(): # pygame.sprite.Sprite enables the use of pygame-based collision. Enables class to use pygame.spirte.Sprite function
     
 
     # def __init__ code. applies default values to be used unless stated otherwise
     def __init__(self, image = "test.png", x = DISP_WIDTH / 2, y = DISP_HEIGHT / 2, xspeed = 1, yspeed = 1, direction = 'right'):
-        self.image = pygame.image.load(image) # pygame.image.load needs to be used to be able to just use 'image' as variable
+
+        self.image = pygame.transform.scale(pygame.image.load(image).convert_alpha(), (15, 15)) # pygame.image.load needs to be used to be able to just use 'image' as variable, scale is used for collision later. 15 is used since sprite is 15x15 pixels
+        self.rect = self.image.get_rect() # defines a rectangle on the image (hitbox)
+        self.rect.center = (x, y)
         self.x = x
         self.y = y
         self.xspeed = xspeed
         self.yspeed = yspeed
         self.direction = direction
 
-
+        
 
 
 
@@ -56,10 +59,15 @@ class Bubblegum():
         elif self.y < 0:
             self.y += 1
 
+        
 
 
     def draw(self):
-        DISPLAYSURF.blit(self.image, (self.x, self.y)) # code to draw on screen. for this we onyl need the image, x and y coordinates. self.x and self.y has to be sperated
+        DISPLAYSURF.blit(self.image, self.rect) # code to draw on screen. for this we onyl need the image, x and y coordinates. self.x and self.y has to be sperate
+
+    def collision(self): # collision code
+        if self.rect.colliderect(bubblegum2.rect): # checks if bubblegum (1) collides with bubblegum2
+            print("Collision")
 
 
 
@@ -68,12 +76,16 @@ class Bubblegum2():
 
     # def __init__ code. applies default values to be used unless stated otherwise
     def __init__(self, image = "test2.png", x = DISP_WIDTH / 2, y = DISP_HEIGHT / 2, xspeed = 1, yspeed = 1, direction = 'right'):
-        self.image = pygame.image.load(image) # pygame.image.load needs to be used to be able to just use 'image' as variable
+        self.image = pygame.transform.scale(pygame.image.load(image).convert_alpha(), (15, 15)) # pygame.image.load needs to be used to be able to just use 'image' as variable
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
         self.x = x
         self.y = y
         self.xspeed = xspeed
         self.yspeed = yspeed
         self.direction = direction
+        
+        
 
 
 
@@ -95,14 +107,23 @@ class Bubblegum2():
 
 
     def draw(self):
-        DISPLAYSURF.blit(self.image, (self.x, self.y)) # code to draw on screen. for this we onyl need the image, x and y coordinates. self.x and self.y has to be sperated
+        DISPLAYSURF.blit(self.image, self.rect) # code to draw on screen. for this we onyl need the image, x and y coordinates. self.x and self.y has to be sperated
+
+    def collision(self): # has to be here since an object list is used later on.
+        pass 
 
 
 
 # append object on screen (aka spawn it)
 
-bubblegum = Bubblegum(xspeed = 0.125, yspeed = 0.125) #if the () has nothing in it the default values will be used
+bubblegum = Bubblegum(xspeed = 0.125, yspeed = 0.125) # if the () has nothing in it the default values will be used
 bubblegum2 = Bubblegum2(xspeed = 0.125, yspeed = 0.125) # if the () has nothing in it the default values will be used
+
+
+# makes a list of objects
+objects = []
+objects.append(bubblegum) # adds bubblegum to list called objects
+objects.append(bubblegum2) # adds bubblegum2 to list called objects
 
 
 pygame.key.set_repeat(1, 25) # enables pygame to check for multime keypresses. 1 = enabled, other value = interval between
@@ -112,13 +133,16 @@ while True:
 
     DISPLAYSURF.fill(WHITE)
 
-   
-    #bubblegum.update() # run bubblegum update function
-    bubblegum.draw() # draw 'new' bubblegum position
-    bubblegum.stop_move() # stop image from moving.
 
-    bubblegum2.draw()
-    bubblegum2.stop_move()
+
+    
+    for o in objects: # evvery class in the objects list will be applied here.
+        o.draw()
+        o.stop_move()
+        o.collision() # currently only in bubblegum (1) calss
+   
+
+
 
     # pygame event code
     for event in pygame.event.get(): # event.get will look for any type of input (not limtied to keyboard)
@@ -134,40 +158,40 @@ while True:
             # move code for player 1
             # left code
             if event.key == pygame.K_LEFT:
-                bubblegum.x -= 1 # if left key is pressed remove 1 from bubblegum x var
+                bubblegum.rect.centerx -= 1 # if left key is pressed remove 1 from bubblegum x var
                 print('K_LEFT  :   bubblegum.x = {0}     bubblegum.y = {1}'.format(bubblegum.x, bubblegum.y))
                 
             elif event.key == pygame.K_UP:
-                bubblegum.y -= 1 # if up key is pressed remove 1 from bublegum y var
+                bubblegum.rect.centery -= 1 # if up key is pressed remove 1 from bublegum y var
                 print('K_UP    :   bubblegum.x = {0}     bubblegum.y = {1}'.format(bubblegum.x, bubblegum.y))
                 
                     
             elif event.key == pygame.K_DOWN:
-                bubblegum.y += 1 # if down key is pressed add 1 to bubblegum y var
+                bubblegum.rect.centery += 1 # if down key is pressed add 1 to bubblegum y var
                 print('K_DOWN  :   bubblegum.x = {0}     bubblegum.y = {1}'.format(bubblegum.x, bubblegum.y))
 
             elif event.key == pygame.K_RIGHT:
-                bubblegum.x += 1 # if right key is pressed add 1 to bubblegum x var
+                bubblegum.rect.centerx += 1 # if right key is pressed add 1 to bubblegum x var
                 print('K_RIGHT :   bubblegum.x = {0}     bubblegum.y = {1}'.format(bubblegum.x, bubblegum.y))
 
 
 
             # code for moving faster
             if event.key == pygame.K_j:
-                bubblegum.x -= 5 # if left key is pressed remove 5 from bubblegum x var
+                bubblegum.rect.centerx -= 5 # if left key is pressed remove 5 from bubblegum x var
                 print('K_j     :   bubblegum.x = {0}     bubblegum.y = {1}'.format(bubblegum.x, bubblegum.y))
                 
             elif event.key == pygame.K_i:
-                bubblegum.y -= 5 # if up key is pressed remove 5 from bublegum y var
+                bubblegum.rect.centery -= 5 # if up key is pressed remove 5 from bublegum y var
                 print('K_i     :   bubblegum.x = {0}     bubblegum.y = {1}'.format(bubblegum.x, bubblegum.y))
                 
                     
             elif event.key == pygame.K_k:
-                bubblegum.y += 5 # if down key is pressed add 5 to bubblegum y var
+                bubblegum.rect.centery += 5 # if down key is pressed add 5 to bubblegum y var
                 print('K_k     :   bubblegum.x = {0}     bubblegum.y = {1}'.format(bubblegum.x, bubblegum.y))
 
             elif event.key == pygame.K_l:
-                bubblegum.x += 5 # if right key is pressed add 5 to bubblegum x var
+                bubblegum.rect.centerx += 5 # if right key is pressed add 5 to bubblegum x var
                 print('K_l     :   bubblegum.x = {0}     bubblegum.y = {1}'.format(bubblegum.x, bubblegum.y))
 
 
@@ -182,20 +206,20 @@ while True:
             # move code for player 2
             # left code
             if event.key == pygame.K_a:
-                bubblegum2.x -= 1 # if left key is pressed remove 1 from bubblegum x var
+                bubblegum2.rect.centerx -= 1 # if left key is pressed remove 1 from bubblegum x var
                 print('K_a     :   bubblegum2.x = {0}     bubblegum2.y = {1}'.format(bubblegum2.x, bubblegum2.y))
                 
             elif event.key == pygame.K_w:
-                bubblegum2.y -= 1 # if up key is pressed remove 1 from bublegum y var
+                bubblegum2.rect.centery -= 1 # if up key is pressed remove 1 from bublegum y var
                 print('K_w     :   bubblegum2.x = {0}     bubblegum2.y = {1}'.format(bubblegum2.x, bubblegum2.y))
                 
                     
             elif event.key == pygame.K_s:
-                bubblegum2.y += 1 # if down key is pressed add 1 to bubblegum y var
+                bubblegum2.rect.centery += 1 # if down key is pressed add 1 to bubblegum y var
                 print('K_s     :   bubblegum2.x = {0}     bubblegum2.y = {1}'.format(bubblegum2.x, bubblegum2.y))
 
             elif event.key == pygame.K_d:
-                bubblegum2.x += 1 # if right key is pressed add 1 to bubblegum x var
+                bubblegum2.rect.centerx += 1 # if right key is pressed add 1 to bubblegum x var
                 print('K_d     :   bubblegum2.x = {0}     bubblegum2.y = {1}'.format(bubblegum2.x, bubblegum2.y))
 
 
@@ -212,7 +236,7 @@ while True:
 
 
 
-    # code to 'update' (redraw) the display. This is to not create a 'tail' effect
+    # update display
     pygame.display.update()
 
 
